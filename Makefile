@@ -1,4 +1,5 @@
 .PHONY: all
 
 all:
-	zip kodi-serienstream-addon.zip addon.py addon.xml
+	rm -f plugin.video.serienstream.zip
+	zip -r plugin.video.serienstream.zip plugin.video.serienstream/
