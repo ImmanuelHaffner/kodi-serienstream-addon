@@ -22,7 +22,7 @@ mode = args.get('mode', None)
 
 if mode is None:
     url = build_url({'mode': 'search'})
-    li = xbmcplugin.ListItem('Search', IconImage='DefaultVideo.png')
+    li = xbmcgui.ListItem('Search', IconImage='DefaultVideo.png')
     xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li)
     xbmcplugin.endOfDirectory(addon_handle)
 
@@ -30,11 +30,11 @@ elif mode[0] == 'search':
     kb = xbmc.Keyboard(heading='Search for series')
     kb.doModal()
 
-    li_up = xbmcplugin.ListItem('..')
+    li_up = xbmcgui.ListItem('..')
     xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url(), listitem=li_up)
 
     if kb.isConfirmed():
-        li_ok = xbmcplugin.ListItem('OK')
+        li_ok = xbmcgui.ListItem('OK')
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url(), listitem=li_ok)
 
     xbmcplugin.endOfDirectory(addon_handle)
