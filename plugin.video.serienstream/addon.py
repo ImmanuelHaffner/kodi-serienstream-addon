@@ -48,13 +48,34 @@ class Menu:
 
         if data:
             for entry in data:
-                self.addListItem(strip_html(entry['title']), None)
+                self.addListItem(strip_html(entry['title']), {'action': 'seasons', 'url': entry['link']})
             xbmcplugin.endOfDirectory(self.handle)
 
         else:
             dialog = xbmcgui.Dialog()
             dialog.ok('Search failed', 'Nothing found for', '"' + search_string + '"')
             self.showMainMenu()
+
+    def showSeasons(self, url):
+        seasons = SerienStream.get_seasons(url)
+        for title, url in seasons:
+            self.addListItem(u'Season {}'.format(title), {'action': 'episodes', 'url': url})
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def showEpisodes(self, url):
+        episodes = SerienStream.get_episodes(url)
+        n = 1
+        for title, url in episodes:
+            self.addListItem(u'{} - {}'.format(n, title), {'action': 'hosters', 'url': url})
+            n += 1
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def showHosters(self, url):
+        hosters = SerienStream.get_hosters_for_episode(url)
+        for title, url in hosters:
+            self.addListItem(title, {'action': 'play', 'url': url})
+        xbmcplugin.endOfDirectory(self.handle)
+
 
     # Displays the menu items
     def show(self):
@@ -74,9 +95,29 @@ class Menu:
                 self.log('User input aborted')
                 self.showMainMenu()
 
+        elif action == 'seasons':
+            url = self.query.get('url', None)
+            self.log('Showing seasons for URL "{}"'.format(url))
+            self.showSeasons(url)
+
+        elif action == 'episodes':
+            url = self.query.get('url', None)
+            self.log('Showing episodes for URL "{}"'.format(url))
+            self.showEpisodes(url)
+
+        elif action == 'hosters':
+            url = self.query.get('url', None)
+            self.log('Showing hosters for URL "{}"'.format(url))
+            self.showHosters(url)
+
+        elif action == 'play':
+            url = self.query.get('url', None)
+            self.log('Play video from "{}"'.format(url))
+            # TODO
+
         else:
             self.log('Invalid action')
-            raise "Invalid action"
+            raise Exception('Invalid action "{}"'.format(str(action)))
 
 if __name__ == '__main__':
     menu = Menu(sys.argv)
