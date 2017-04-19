@@ -76,6 +76,14 @@ class Menu:
             self.addListItem(title, {'action': 'play', 'url': url})
         xbmcplugin.endOfDirectory(self.handle)
 
+    def playVideo(self, url):
+        redirected_url = SerienStream.redirect_to_hoster(url)
+        self.log('Redirected "{}" to hoster URL "{}"'.format(url, redirected_url))
+        video_url = SerienStream.get_video_url(redirected_url)
+        self.log('Reduced "{}" to video URL "{}"'.format(redirected_url, video_url))
+        li = xbmcgui.ListItem(path=video_url)
+        xbmc.Player().play(video_url, li)
+
 
     # Displays the menu items
     def show(self):
@@ -113,7 +121,7 @@ class Menu:
         elif action == 'play':
             url = self.query.get('url', None)
             self.log('Play video from "{}"'.format(url))
-            # TODO
+            self.playVideo(url)
 
         else:
             self.log('Invalid action')
