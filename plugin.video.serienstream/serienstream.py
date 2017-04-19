@@ -65,11 +65,27 @@ class SerienStream:
 
     @staticmethod
     def redirect_to_hoster(url):
-        print('redirecting')
         headers = { 'User-Agent' : SerienStream.user_agent }
         req = urllib2.Request(url, None, headers)
         redirect_url = urllib2.urlopen(req).geturl()
-        print(redirect_url)
+        return redirect_url
+
+    @staticmethod
+    def get_video_url(url):
+        if 'openload' in url:
+            video_code = url[22:]
+            embedded_link = SerienStream.embed_url + '/' + video_code
+            display = Xvfb()
+            display.start()
+            browser = webdriver.Chrome()
+            browser.get(embedded_link)
+            stream_code = browser.find_element_by_css_selector('span#streamurl').get_attribute('innerHTML')
+            browser.close()
+            browser.quit()
+            display.stop()
+            return SerienStream.stream_url + '/' + stream_code
+        return None
+
 
 if __name__ == '__main__':
     search_string = sys.argv[1]
@@ -118,36 +134,13 @@ if __name__ == '__main__':
     #
     hoster_title, hoster_link = hosters[0]
     print(u'>>> Redirecting URL "{}" to hoster "{}"'.format(hoster_link, hoster_title))
-    headers = { 'User-Agent' : SerienStream.user_agent }
-    req = urllib2.Request(hoster_link, None, headers)
-    con = urllib2.urlopen(req)
-    redirected_link = con.geturl()
+    redirected_link = SerienStream.redirect_to_hoster(hoster_link)
     print(redirected_link)
     print
 
     #
-    # Get embedded URL
+    # Get embedded URL and then get video URL
     #
     assert 'openload' in redirected_link
-    print(u'>>> Get embedded URL from "{}" ({})'.format(hoster_title, redirected_link))
-    video_code = redirected_link[22:]
-    embedded_link = SerienStream.embed_url + '/' + video_code
-    print(embedded_link)
-    print
-
-    #
-    #   Get video URL
-    #
-    print(u'>>> Getting video URL from "{}" ({})'.format(hoster_title, embedded_link))
-    display = Xvfb()
-    display.start()
-    browser = webdriver.Chrome()
-    browser.get(embedded_link)
-    # browser.execute_script('dispatchEvent(new Event("load"));');
-    stream_code = browser.find_element_by_css_selector('span#streamurl').get_attribute('innerHTML')
-    browser.close()
-    browser.quit()
-    display.stop()
-
-    stream = SerienStream.stream_url + '/' + stream_code
-    print(stream)
+    print(u'>>> Get video URL from "{}" ({})'.format(hoster_title, redirected_link))
+    print(SerienStream.get_video_url(redirected_link))
