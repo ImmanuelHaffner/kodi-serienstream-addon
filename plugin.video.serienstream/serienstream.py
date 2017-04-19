@@ -3,6 +3,7 @@
 #
 
 from pyquery import PyQuery
+from selenium import webdriver
 import json
 import re
 import sys
@@ -12,6 +13,7 @@ import urllib2
 
 class SerienStream:
     base_url = 'https://serienstream.to'
+    embed_url = 'https://openload.co/embed'
 
     @staticmethod
     def search(search_string):
@@ -60,7 +62,7 @@ class SerienStream:
 
 if __name__ == '__main__':
     search_string = sys.argv[1]
-    print('Searching SerienStream.to for "' + search_string + '"')
+    print(u'Searching SerienStream.to for "' + search_string + '"')
     data = SerienStream.search(search_string)
 
 
@@ -70,7 +72,7 @@ if __name__ == '__main__':
     series = data[0]
     title = re.sub('<[/a-zA-Z]*>', '', series['title'])
     link = series['link']
-    print('getting seasons for series "{}" from "{}"'.format(title, link))
+    print(u'getting seasons for series "{}" from "{}"'.format(title, link))
     seasons = SerienStream.get_seasons(link)
     for title, url in seasons:
         print(u'{} - {}'.format(title, url))
@@ -98,8 +100,15 @@ if __name__ == '__main__':
     # Get video
     #
     url = hosters[0][1]
+    print(u'getting video from URL "{}"'.format(url))
     headers = { 'User-Agent' : 'Mozilla/5.0' }
     req = urllib2.Request(url, None, headers)
     html = urllib2.urlopen(req).read()
     dom = PyQuery(html)
-    print(dom('div.videocontainer'))
+
+    browser = webdriver.PhantomJS()
+    browser.get(url)
+    streamurl = browser.find_element_by_css_selector('span#streamurl')
+    print(streamurl.text)
+    print(unicode(streamurl.get_attribute('outerHTML'), 'utf-8'))
+    browser.close()
